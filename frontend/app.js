@@ -2,7 +2,7 @@
 // AI Cost Intelligence — Dashboard Application Logic v2.0
 // ═══════════════════════════════════════════════════════════════
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://ai-cost-intelligence-system.onrender.com/api';
 
 let barChart = null;
 let pieChart = null;
@@ -46,7 +46,7 @@ async function runAnalysis() {
 
     } catch (error) {
         console.error('Analysis failed:', error);
-        alert('Failed to connect to backend. Make sure the Spring Boot server is running on port 8080.');
+        alert('Failed to connect to backend. Please try again (server may be waking up).');
     } finally {
         btn.classList.remove('loading');
         btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2l10 6-10 6V2z" fill="currentColor"/></svg> Run Analysis';
