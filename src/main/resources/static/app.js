@@ -208,45 +208,98 @@ function renderPlaybooks(playbooks) {
         return;
     }
 
-    container.innerHTML = playbooks.map((pb, i) => `
-        <div class="playbook-card" style="animation: fadeInUp ${0.3 + i * 0.08}s ease forwards;">
+    container.innerHTML = `
+        <div class="playbooks-toolbar">
+            <button class="btn-toggle-all" onclick="toggleAllPlaybooks()">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M2 4l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <span id="toggleAllLabel">Collapse All</span>
+            </button>
+            <span class="playbooks-summary">${playbooks.length} playbooks · ${formatCurrency(playbooks.reduce((s, p) => s + p.estimatedSavings, 0))} total potential savings</span>
+        </div>
+    ` + playbooks.map((pb, i) => `
+        <div class="playbook-card" style="animation: fadeInUp ${0.2 + i * 0.06}s ease both;">
             <div class="playbook-header" onclick="togglePlaybook('pb-${i}')">
                 <div class="playbook-meta">
                     <span class="severity severity-${pb.priority.toLowerCase()}">${pb.priority}</span>
                     <span class="playbook-agent">${pb.agent}</span>
+                    <span class="playbook-status playbook-st-${pb.status.toLowerCase()}">${pb.status}</span>
                 </div>
                 <h3 class="playbook-title">${pb.title}</h3>
                 <div class="playbook-savings">
                     <span class="playbook-savings-value">${formatCurrency(pb.estimatedSavings)}</span>
                     <span class="playbook-savings-label">est. savings</span>
                 </div>
-                <svg class="playbook-chevron" id="chevron-pb-${i}" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <svg class="playbook-chevron playbook-chevron-open" id="chevron-pb-${i}" width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
             </div>
-            <div class="playbook-body" id="pb-${i}" style="display: none;">
+            <div class="playbook-body playbook-body-open" id="pb-${i}">
                 <div class="playbook-steps">
-                    ${pb.steps.map(step => `<div class="playbook-step">${step}</div>`).join('')}
+                    ${pb.steps.map((step, si) => `
+                        <div class="playbook-step">
+                            <span class="step-number">${si + 1}</span>
+                            <span class="step-text">${step.replace(/^\d+\.\s*/, '')}</span>
+                        </div>
+                    `).join('')}
                 </div>
                 <div class="cost-math-box">
-                    <div class="cost-math-label">📊 Cost Math</div>
-                    <div class="cost-math-content">${pb.costMath}</div>
+                    <div class="cost-math-label">📊 Cost Math Breakdown</div>
+                    <div class="cost-math-content">${pb.costMath.replace(/\|/g, '<br>')}</div>
                 </div>
+                ${pb.triggerIssueId ? `<div class="playbook-trigger">Triggered by issue: <span class="trigger-id">${pb.triggerIssueId}</span></div>` : ''}
             </div>
         </div>
     `).join('');
 }
 
+let allPlaybooksExpanded = true;
+
 function togglePlaybook(id) {
     const body = document.getElementById(id);
     const chevron = document.getElementById('chevron-' + id);
-    if (body.style.display === 'none') {
-        body.style.display = 'block';
-        chevron.style.transform = 'rotate(180deg)';
+    const isOpen = body.classList.contains('playbook-body-open');
+
+    if (isOpen) {
+        body.classList.remove('playbook-body-open');
+        body.classList.add('playbook-body-closed');
+        chevron.classList.remove('playbook-chevron-open');
+        chevron.classList.add('playbook-chevron-closed');
     } else {
-        body.style.display = 'none';
-        chevron.style.transform = 'rotate(0deg)';
+        body.classList.remove('playbook-body-closed');
+        body.classList.add('playbook-body-open');
+        chevron.classList.remove('playbook-chevron-closed');
+        chevron.classList.add('playbook-chevron-open');
     }
+}
+
+function toggleAllPlaybooks() {
+    const bodies = document.querySelectorAll('.playbook-body');
+    const chevrons = document.querySelectorAll('.playbook-chevron');
+    allPlaybooksExpanded = !allPlaybooksExpanded;
+
+    bodies.forEach(body => {
+        if (allPlaybooksExpanded) {
+            body.classList.remove('playbook-body-closed');
+            body.classList.add('playbook-body-open');
+        } else {
+            body.classList.remove('playbook-body-open');
+            body.classList.add('playbook-body-closed');
+        }
+    });
+
+    chevrons.forEach(chevron => {
+        if (allPlaybooksExpanded) {
+            chevron.classList.remove('playbook-chevron-closed');
+            chevron.classList.add('playbook-chevron-open');
+        } else {
+            chevron.classList.remove('playbook-chevron-open');
+            chevron.classList.add('playbook-chevron-closed');
+        }
+    });
+
+    document.getElementById('toggleAllLabel').textContent = allPlaybooksExpanded ? 'Collapse All' : 'Expand All';
 }
 
 // ── Render Approval Queue ──
@@ -261,7 +314,7 @@ function renderApprovals(approvals) {
     }
 
     container.innerHTML = approvals.map((a, i) => `
-        <div class="approval-card approval-${a.status.toLowerCase()}" id="approval-${a.id}" style="animation: fadeInUp ${0.3 + i * 0.1}s ease forwards;">
+        <div class="approval-card approval-${a.status.toLowerCase()}" id="approval-${a.id}">
             <div class="approval-header">
                 <div class="approval-meta">
                     <span class="risk-badge risk-${a.riskLevel.toLowerCase()}">${a.riskLevel} RISK</span>
