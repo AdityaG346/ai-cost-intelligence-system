@@ -419,10 +419,17 @@ async function handleApproval(id, action) {
         const res = await fetch(`${API_BASE}/approvals/${id}/${action}`, { method: 'POST' });
         if (res.ok) {
             const updated = await res.json();
-            // Refresh approvals
-            const allRes = await fetch(`${API_BASE}/approvals`);
+
+            // Refresh approvals and audit log in parallel
+            const [allRes, auditRes] = await Promise.all([
+                fetch(`${API_BASE}/approvals`),
+                fetch(`${API_BASE}/audit`)
+            ]);
             const allApprovals = await allRes.json();
+            const auditLog = await auditRes.json();
+
             renderApprovals(allApprovals);
+            renderAuditLog(auditLog);
             refreshLucideIcons();
 
             // Flash feedback

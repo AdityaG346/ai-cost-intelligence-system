@@ -1,17 +1,29 @@
 package com.costintel.controller;
 
-import com.costintel.models.*;
-import com.costintel.service.ApprovalService;
-import com.costintel.service.DataService;
-import com.costintel.service.WorkflowEngine;
-import com.costintel.utils.AuditLogger;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.costintel.models.ActionItem;
+import com.costintel.models.ApprovalRequest;
+import com.costintel.models.AuditEntry;
+import com.costintel.models.Impact;
+import com.costintel.models.Playbook;
+import com.costintel.models.Transaction;
+import com.costintel.service.ApprovalService;
+import com.costintel.service.DataService;
+import com.costintel.service.WorkflowEngine;
+import com.costintel.utils.AuditLogger;
 
 @RestController
 @RequestMapping("/api")
@@ -88,8 +100,14 @@ public class ApiController {
     public ResponseEntity<?> approveRequest(@PathVariable String id) {
         Optional<ApprovalRequest> result = approvalService.approveRequest(id);
         if (result.isPresent()) {
-            auditLogger.log("Approval System", "Approved request " + id + ": " + result.get().getDescription());
-            return ResponseEntity.ok(result.get());
+            ApprovalRequest approval = result.get();
+            auditLogger.log("Approval System", 
+                "Approved request " + approval.getId() + 
+                " | Agent: " + approval.getAgent() + 
+                " | Action: " + approval.getDescription() + 
+                " | Savings: ₹" + String.format("%.0f", approval.getEstimatedImpact()) +
+                " | Risk Level: " + approval.getRiskLevel());
+            return ResponseEntity.ok(approval);
         }
         return ResponseEntity.notFound().build();
     }
@@ -98,8 +116,14 @@ public class ApiController {
     public ResponseEntity<?> rejectRequest(@PathVariable String id) {
         Optional<ApprovalRequest> result = approvalService.rejectRequest(id);
         if (result.isPresent()) {
-            auditLogger.log("Approval System", "Rejected request " + id + ": " + result.get().getDescription());
-            return ResponseEntity.ok(result.get());
+            ApprovalRequest approval = result.get();
+            auditLogger.log("Approval System", 
+                "Rejected request " + approval.getId() + 
+                " | Agent: " + approval.getAgent() + 
+                " | Action: " + approval.getDescription() + 
+                " | Savings: ₹" + String.format("%.0f", approval.getEstimatedImpact()) +
+                " | Risk Level: " + approval.getRiskLevel());
+            return ResponseEntity.ok(approval);
         }
         return ResponseEntity.notFound().build();
     }
