@@ -1,12 +1,17 @@
 package com.costintel.models;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+
 public class Transaction {
     private String id;
     private String vendor;
     private double amount;
     private String date;
+    @JsonAlias("usagePercent")
     private double resourceUsage;
+    @JsonAlias("expectedCost")
     private double expectedAmount;
+    @JsonAlias("actualCost")
     private double actualAmount;
     private String category;
     private String status;

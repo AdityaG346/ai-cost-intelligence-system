@@ -1,0 +1,22 @@
+# Build output
+/target/
+
+# Logs
+*.log
+*.err.log
+
+# Environment and local secrets
+.env
+.env.*
+!.env.example
+
+# Vercel local project metadata
+.vercel/
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

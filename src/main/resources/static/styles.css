@@ -230,7 +230,6 @@ body::before {
 }
 
 .card-icon {
-    font-size: 1.8rem;
     width: 52px;
     height: 52px;
     display: flex;
@@ -239,6 +238,12 @@ body::before {
     background: var(--bg-glass);
     border-radius: 14px;
     flex-shrink: 0;
+}
+
+.card-icon .lucide {
+    width: 28px;
+    height: 28px;
+    stroke-width: 2;
 }
 
 .card-content {
@@ -292,8 +297,16 @@ body::before {
 }
 
 .roi-icon {
-    font-size: 1.3rem;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.roi-icon .lucide {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2;
 }
 
 .roi-content {
@@ -387,8 +400,31 @@ body::before {
 
 /* ── Tables ── */
 .table-wrapper {
+    max-height: 340px;
+    overflow-y: auto;
     overflow-x: auto;
+    display: block;
     border-radius: var(--radius-sm);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
+}
+
+.transactions-panel .table-wrapper,
+.issues-panel .table-wrapper,
+.actions-panel .table-wrapper {
+    max-height: 340px;
+    overflow-y: auto;
+    overflow-x: auto;
+    display: block;
+}
+
+.table-wrapper table {
+    width: 100%;
+    min-width: 100%;
+}
+
+.table-wrapper tbody {
+    display: table-row-group;
 }
 
 table {
@@ -504,9 +540,14 @@ tbody tr:last-child td { border-bottom: none; }
 
 /* ── Playbooks ── */
 .playbooks-grid {
+    max-height: 420px;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 12px;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
 }
 
 .playbooks-toolbar {
@@ -549,6 +590,8 @@ tbody tr:last-child td { border-bottom: none; }
     overflow: hidden;
     transition: all 0.3s ease;
     background: rgba(255, 255, 255, 0.01);
+    flex-shrink: 0;
+    min-height: 90px;
 }
 
 .playbook-card:hover {
@@ -668,13 +711,14 @@ tbody tr:last-child td { border-bottom: none; }
     max-height: 1200px;
     opacity: 1;
     padding: 16px 20px 20px;
+    border-top: 1px solid var(--border);
 }
 
 .playbook-body-closed {
     max-height: 0;
     opacity: 0;
-    padding: 0 20px;
-    border-top-color: transparent;
+    padding: 0;
+    border: none;
 }
 
 .playbook-steps {
@@ -722,12 +766,21 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 .cost-math-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 0.72rem;
     font-weight: 700;
     color: var(--accent-indigo);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     margin-bottom: 8px;
+}
+
+.cost-math-label .lucide {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.5;
 }
 
 .cost-math-content {
@@ -760,8 +813,11 @@ tbody tr:last-child td { border-bottom: none; }
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-height: 500px;
-    overflow-y: auto;
+    max-height: 420px;
+    overflow-y: scroll;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
 }
 
 .approval-card {
@@ -958,7 +1014,10 @@ tbody tr:last-child td { border-bottom: none; }
     flex-direction: column;
     gap: 14px;
     max-height: 420px;
-    overflow-y: auto;
+    overflow-y: scroll;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
 }
 
 .agent-card {
@@ -1071,10 +1130,35 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+.table-wrapper::-webkit-scrollbar,
+.agent-panel::-webkit-scrollbar,
+.approvals-grid::-webkit-scrollbar,
+.playbooks-grid::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-track,
+.agent-panel::-webkit-scrollbar-track,
+.approvals-grid::-webkit-scrollbar-track,
+.playbooks-grid::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb,
+.agent-panel::-webkit-scrollbar-thumb,
+.approvals-grid::-webkit-scrollbar-thumb,
+.playbooks-grid::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.4);
+    border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover,
+.agent-panel::-webkit-scrollbar-thumb:hover,
+.approvals-grid::-webkit-scrollbar-thumb:hover,
+.playbooks-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.6);
+}
 
 /* ── Footer ── */
 .footer {

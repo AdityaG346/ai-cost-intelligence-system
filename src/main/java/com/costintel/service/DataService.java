@@ -5,8 +5,10 @@ import com.costintel.utils.SampleDataLoader;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class DataService {
@@ -17,6 +19,7 @@ public class DataService {
     private List<ActionItem> actions = new ArrayList<>();
     private List<Playbook> playbooks = new ArrayList<>();
     private Impact impact = new Impact();
+    private final AtomicInteger streamedTransactionCount = new AtomicInteger(0);
 
     public DataService(SampleDataLoader sampleDataLoader) {
         this.sampleDataLoader = sampleDataLoader;
@@ -27,8 +30,34 @@ public class DataService {
         transactions = sampleDataLoader.loadSampleData();
     }
 
-    public List<Transaction> getTransactions() { return transactions; }
-    public void setTransactions(List<Transaction> transactions) { this.transactions = transactions; }
+    public synchronized List<Transaction> getTransactions() { return new ArrayList<>(transactions); }
+    public synchronized void setTransactions(List<Transaction> transactions) { this.transactions = transactions; }
+
+    public synchronized Transaction addTransaction(Transaction transaction) {
+        if (transaction.getId() == null || transaction.getId().isBlank()) {
+            transaction.setId(String.format("TXN-STREAM-%03d", streamedTransactionCount.incrementAndGet()));
+        }
+        if (transaction.getDate() == null || transaction.getDate().isBlank()) {
+            transaction.setDate(LocalDate.now().toString());
+        }
+        if (transaction.getStatus() == null || transaction.getStatus().isBlank()) {
+            transaction.setStatus("ACTIVE");
+        }
+        if (transaction.getExpectedAmount() == 0) {
+            transaction.setExpectedAmount(transaction.getAmount());
+        }
+        if (transaction.getActualAmount() == 0) {
+            transaction.setActualAmount(transaction.getAmount());
+        }
+        if (transaction.getCategory() == null || transaction.getCategory().isBlank()) {
+            transaction.setCategory(inferCategory(transaction.getVendor()));
+        }
+        if (transaction.getDeadline() == null) {
+            transaction.setDeadline("");
+        }
+        transactions.add(transaction);
+        return transaction;
+    }
 
     public List<Issue> getIssues() { return issues; }
     public void setIssues(List<Issue> issues) { this.issues = issues; }
@@ -47,5 +76,20 @@ public class DataService {
         actions.clear();
         playbooks.clear();
         impact = new Impact();
+    }
+
+    private String inferCategory(String vendor) {
+        if (vendor == null) return "General";
+        String normalizedVendor = vendor.toLowerCase();
+        if (normalizedVendor.contains("aws") || normalizedVendor.contains("azure") || normalizedVendor.contains("cloud")) {
+            return "Infrastructure";
+        }
+        if (normalizedVendor.contains("google") || normalizedVendor.contains("salesforce")) {
+            return "Software";
+        }
+        if (normalizedVendor.contains("secure")) {
+            return "Security";
+        }
+        return "General";
     }
 }

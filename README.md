@@ -1,53 +1,53 @@
-# 🚀 AI Cost Intelligence & Autonomous Action System
+# AI Cost Intelligence & Autonomous Action System
 
-> 💡 An enterprise-grade multi-agent AI system that doesn't just detect financial inefficiencies — it **acts on them automatically**.
+> An enterprise-grade multi-agent AI system that doesn't just detect financial inefficiencies — it **acts on them automatically**.
 
 ---
 
-## 📌 Overview
+## Overview
 
 The **AI Cost Intelligence & Autonomous Action System** is a full-stack platform designed to:
 
-* 🔍 Detect financial inefficiencies in enterprise data
-* 🧠 Analyze root causes using intelligent agents
-* ⚡ Take automated corrective actions
-* ✅ Route high-risk decisions through approval workflows
-* 📊 Track and visualize real financial impact
+* Detect financial inefficiencies in enterprise data
+* Analyze root causes using intelligent agents
+* Take automated corrective actions
+* Route high-risk decisions through approval workflows
+* Track and visualize real financial impact
 
 > Unlike traditional dashboards, this system follows a **DETECT → ANALYZE → ACT → APPROVE → SAVE** pipeline.
 
 ---
 
-## 🧠 Key Features
+## Key Features
 
-* 🤖 **Multi-Agent Architecture**
+* **Multi-Agent Architecture**
 
   * Spend Intelligence Agent
   * SLA Monitoring Agent
   * Resource Optimization Agent
   * Financial Operations Agent
 
-* ⚡ **Autonomous Actions**
+* **Autonomous Actions**
 
   * Payment reversals
   * Vendor renegotiation
   * Resource reallocation
 
-* 📘 **Actionable Playbooks**
+* **Actionable Playbooks**
 
   * Step-by-step remediation
   * Built-in cost calculations
 
-* 🛡️ **Enterprise Approval Workflow**
+* **Enterprise Approval Workflow**
 
   * High-risk actions require approval
   * Risk-based prioritization
 
-* 🧾 **Audit Logging System**
+* **Audit Logging System**
 
   * Full traceability of all actions
 
-* 📊 **Premium Dashboard**
+* **Premium Dashboard**
 
   * Real-time KPIs
   * Interactive charts (Chart.js)
@@ -55,7 +55,7 @@ The **AI Cost Intelligence & Autonomous Action System** is a full-stack platform
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```text
 Frontend (Dashboard)
@@ -71,20 +71,20 @@ Data + Approval + Audit Services
 
 ---
 
-## ⚙️ Tech Stack
+## Tech Stack
 
-### 🖥️ Backend
+### Backend
 
 * Java 17
 * Spring Boot
 * Maven
 
-### 🎨 Frontend
+### Frontend
 
 * HTML, CSS, JavaScript
 * Chart.js
 
-### 🧠 Architecture
+### Architecture
 
 * Multi-Agent System
 * Pipeline Pattern
@@ -92,7 +92,7 @@ Data + Approval + Audit Services
 
 ---
 
-## 🔄 Workflow Pipeline
+## Workflow Pipeline
 
 ```text
 DETECT → ANALYZE → ACT → APPROVE → SAVE
@@ -100,16 +100,16 @@ DETECT → ANALYZE → ACT → APPROVE → SAVE
 
 ---
 
-## 📊 Sample Output
+## Sample Output
 
-* 💰 Total Cost: ₹3,99,000
-* ⚠️ Waste Detected: ₹65,000
-* ✅ Savings Generated: ₹52,000
-* 📈 Yearly Projection: ₹6,24,000
+* Total Cost: ₹3,99,000
+* Waste Detected: ₹65,000
+* Savings Generated: ₹52,000
+* Yearly Projection: ₹6,24,000
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```bash
 frontend/
@@ -127,15 +127,15 @@ src/main/java/com/costintel/
 
 ---
 
-## ▶️ How to Run
+## How to Run
 
-### 1️⃣ Start Backend
+### 1. Start Backend
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-### 2️⃣ Open Frontend
+### 2. Open Frontend
 
 Open:
 
@@ -143,39 +143,39 @@ Open:
 frontend/index.html
 ```
 
-### 3️⃣ Run Analysis
+### 3. Run Analysis
 
 Click **"Run Analysis"** on dashboard
 
 ---
 
-## 📸 Demo (Add Screenshots Here)
+## Demo (Add Screenshots Here)
 
-> 💡 Add screenshots of your dashboard for better impact
-
----
-
-## 🚀 Future Enhancements
-
-* 🔄 Real-time monitoring (cron jobs)
-* ☁️ Cloud integration (AWS, Azure)
-* 🤖 ML-based anomaly detection
-* 📧 Email/Slack notifications
-* 🏢 Multi-tenant support
+> Add screenshots of your dashboard for better impact
 
 ---
 
-## 🌟 Why This Project Stands Out
+## Future Enhancements
 
-✔ Goes beyond dashboards — **takes action**
-✔ Real-world enterprise use case
-✔ Strong system design (multi-agent + workflows)
-✔ Measurable financial impact
+* Real-time monitoring (cron jobs)
+* Cloud integration (AWS, Azure)
+* ML-based anomaly detection
+* Email/Slack notifications
+* Multi-tenant support
 
 ---
 
-## ⭐ If you like this project
+## Why This Project Stands Out
 
-Give it a ⭐ on GitHub and share it!
+* Goes beyond dashboards — **takes action**
+* Real-world enterprise use case
+* Strong system design (multi-agent + workflows)
+* Measurable financial impact
+
+---
+
+## If you like this project
+
+Give it a star on GitHub and share it!
 
 ---

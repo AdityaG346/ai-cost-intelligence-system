@@ -36,6 +36,11 @@ public class ApiController {
         return dataService.getTransactions();
     }
 
+    @PostMapping("/ingest/transaction")
+    public Transaction ingestTransaction(@RequestBody Transaction transaction) {
+        return dataService.addTransaction(transaction);
+    }
+
     @PostMapping("/analyze")
     public Map<String, Object> runAnalysis() {
         return workflowEngine.runFullPipeline();
