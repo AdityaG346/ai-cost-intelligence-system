@@ -2,7 +2,7 @@
 // AI Cost Intelligence — Dashboard Application Logic v2.0
 // ═══════════════════════════════════════════════════════════════
 
-const API_BASE = 'http://localhost:8081/api';
+const API_BASE = 'http://localhost:8080/api';
 
 let barChart = null;
 let pieChart = null;
@@ -723,5 +723,5 @@ function renderAuditLog(auditLog) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('AI Cost Intelligence Dashboard v2.0 initialized');
     refreshLucideIcons();
-    liveStreamTimer = setInterval(sendFakeTransaction, 1000000000);
+    liveStreamTimer = setInterval(sendFakeTransaction, 50000000);
 });

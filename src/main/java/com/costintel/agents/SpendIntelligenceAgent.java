@@ -1,13 +1,18 @@
 package com.costintel.agents;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Component;
+
 import com.costintel.models.ActionItem;
 import com.costintel.models.Issue;
 import com.costintel.models.Playbook;
 import com.costintel.models.Transaction;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class SpendIntelligenceAgent implements Agent {
@@ -200,8 +205,12 @@ public class SpendIntelligenceAgent implements Agent {
 
             switch (issue.getType()) {
                 case "DUPLICATE_PAYMENT":
-                    title = "Reverse Duplicate Payment — " + issue.getDescription().substring(issue.getDescription().indexOf("to ") + 3);
-                    steps = Arrays.asList(
+int idx = issue.getDescription().indexOf("to ");
+String vendorPart = (idx != -1 && idx + 3 < issue.getDescription().length())
+        ? issue.getDescription().substring(idx + 3)
+        : "Vendor";
+
+title = "Reverse Duplicate Payment — " + vendorPart;                    steps = Arrays.asList(
                         "1. Verify payment duplication in ERP system",
                         "2. Flag transaction " + issue.getAffectedTransactionId() + " as duplicate",
                         "3. Initiate reversal request with finance team",

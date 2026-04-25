@@ -1,13 +1,22 @@
 package com.costintel.service;
 
-import com.costintel.agents.Agent;
-import com.costintel.models.*;
-import com.costintel.utils.AuditLogger;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.costintel.agents.Agent;
+import com.costintel.models.ActionItem;
+import com.costintel.models.ApprovalRequest;
+import com.costintel.models.Impact;
+import com.costintel.models.Issue;
+import com.costintel.models.Playbook;
+import com.costintel.models.Transaction;
+import com.costintel.utils.AuditLogger;
 
 @Service
 public class WorkflowEngine {
@@ -46,22 +55,52 @@ public class WorkflowEngine {
         for (Agent agent : agents) {
             auditLogger.log(agent.getName(), "Starting detection phase");
 
-            // DETECT
-            List<Issue> detected = agent.detect(transactions);
-            auditLogger.log(agent.getName(), "Detected " + detected.size() + " issues");
+            // Initialize default empty collections for null safety
+            List<Issue> detected = new ArrayList<>();
+            List<Issue> analyzed = new ArrayList<>();
+            List<ActionItem> actions = new ArrayList<>();
+            List<Playbook> playbooks = new ArrayList<>();
 
-            // ANALYZE
-            List<Issue> analyzed = agent.analyze(detected);
-            auditLogger.log(agent.getName(), "Analysis complete. " + analyzed.size() + " issues confirmed");
+            // DETECT - wrapped in try-catch
+            try {
+                List<Issue> detectedResult = agent.detect(transactions);
+                detected = (detectedResult != null) ? detectedResult : new ArrayList<>();
+                auditLogger.log(agent.getName(), "Detected " + detected.size() + " issues");
+            } catch (Exception e) {
+                auditLogger.log(agent.getName(), "FAILED during detection phase: " + e.getMessage());
+                // Continue with empty detected list
+            }
 
-            // ACT
-            List<ActionItem> actions = agent.act(analyzed);
-            auditLogger.log(agent.getName(), "Executed " + actions.size() + " corrective actions");
+            // ANALYZE - wrapped in try-catch
+            try {
+                List<Issue> analyzedResult = agent.analyze(detected);
+                analyzed = (analyzedResult != null) ? analyzedResult : new ArrayList<>();
+                auditLogger.log(agent.getName(), "Analysis complete. " + analyzed.size() + " issues confirmed");
+            } catch (Exception e) {
+                auditLogger.log(agent.getName(), "FAILED during analysis phase: " + e.getMessage());
+                // Continue with empty analyzed list
+            }
 
-            // GENERATE PLAYBOOKS
-            List<Playbook> playbooks = agent.generatePlaybooks(analyzed);
-            if (!playbooks.isEmpty()) {
-                auditLogger.log(agent.getName(), "Generated " + playbooks.size() + " actionable playbooks");
+            // ACT - wrapped in try-catch
+            try {
+                List<ActionItem> actResult = agent.act(analyzed);
+                actions = (actResult != null) ? actResult : new ArrayList<>();
+                auditLogger.log(agent.getName(), "Executed " + actions.size() + " corrective actions");
+            } catch (Exception e) {
+                auditLogger.log(agent.getName(), "FAILED during act phase: " + e.getMessage());
+                // Continue with empty actions list
+            }
+
+            // GENERATE PLAYBOOKS - wrapped in try-catch
+            try {
+                List<Playbook> playbooksResult = agent.generatePlaybooks(analyzed);
+                playbooks = (playbooksResult != null) ? playbooksResult : new ArrayList<>();
+                if (!playbooks.isEmpty()) {
+                    auditLogger.log(agent.getName(), "Generated " + playbooks.size() + " actionable playbooks");
+                }
+            } catch (Exception e) {
+                auditLogger.log(agent.getName(), "FAILED during playbook generation phase: " + e.getMessage());
+                // Continue with empty playbooks list
             }
 
             // CREATE APPROVAL REQUESTS for high-risk actions
