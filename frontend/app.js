@@ -2,11 +2,19 @@
 // AI Cost Intelligence — Dashboard Application Logic v2.0
 // ═══════════════════════════════════════════════════════════════
 
-const API_BASE = 'https://ai-cost-intelligence-system.onrender.com/api';
+const API_BASE = 'http://localhost:8081/api';
 
 let barChart = null;
 let pieChart = null;
 let agentPerfChart = null;
+let liveStreamTimer = null;
+let liveStreamInFlight = false;
+
+function refreshLucideIcons() {
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+}
 
 // ── Format Currency ──
 function formatCurrency(val) {
@@ -16,6 +24,22 @@ function formatCurrency(val) {
     return '₹' + val.toFixed(0);
 }
 
+function animateValue(el, start, end, duration) {
+    if (!el) return;
+    let s = null;
+
+    function step(t) {
+        if (!s) s = t;
+        const p = t - s;
+        const v = Math.min(start + (end - start) * (p / duration), end);
+        el.textContent = '₹' + Math.floor(v).toLocaleString('en-IN');
+        if (p < duration) requestAnimationFrame(step);
+        else el.textContent = formatCurrency(end);
+    }
+
+    requestAnimationFrame(step);
+}
+
 // ── Run Analysis ──
 async function runAnalysis() {
     const btn = document.getElementById('runAnalysisBtn');
@@ -23,16 +47,24 @@ async function runAnalysis() {
     btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2l10 6-10 6V2z" fill="currentColor"/></svg> Analyzing...';
 
     try {
-        // First load transactions
+        await refreshDashboardData({ showAlert: true });
+    } catch (error) {
+        console.error('Analysis failed:', error);
+    } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2l10 6-10 6V2z" fill="currentColor"/></svg> Run Analysis';
+    }
+}
+
+async function refreshDashboardData({ showAlert = false } = {}) {
+    try {
         const txnRes = await fetch(`${API_BASE}/data`);
         const transactions = await txnRes.json();
         renderTransactions(transactions);
 
-        // Run analysis pipeline
         const analysisRes = await fetch(`${API_BASE}/analyze`, { method: 'POST' });
         const result = await analysisRes.json();
 
-        // Update dashboard
         updateSummaryCards(result.impact);
         renderROIMetrics(result);
         renderIssues(result);
@@ -43,40 +75,72 @@ async function runAnalysis() {
         renderAgentPerformanceChart(result.agentActivity);
         renderAgentActivity(result.agentActivity);
         renderAuditLog(result.auditLog);
-
+        refreshLucideIcons();
     } catch (error) {
-        console.error('Analysis failed:', error);
-        alert('Failed to connect to backend. Please try again (server may be waking up).');
+        if (showAlert) {
+            alert('Failed to connect to backend. Please try again (server may be waking up).');
+        }
+        throw error;
+    }
+}
+
+function randomFrom(values) {
+    return values[Math.floor(Math.random() * values.length)];
+}
+
+function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// ── Simulated Enterprise Transaction Stream ──
+async function sendFakeTransaction() {
+    if (liveStreamInFlight) return;
+    liveStreamInFlight = true;
+
+    const vendors = [
+        'AWS Cloud Services',
+        'Google Workspace',
+        'Azure Dev Server',
+        'Salesforce CRM',
+        'SecureNet Solutions',
+        'CloudMigrate Inc'
+    ];
+    const expectedCost = randomInt(3000, 55000);
+    const actualCost = Math.round(expectedCost * randomFrom([0.9, 1, 1.05, 1.15, 1.35]));
+    const transaction = {
+        vendor: randomFrom(vendors),
+        amount: actualCost,
+        date: new Date().toISOString().slice(0, 10),
+        usagePercent: randomInt(10, 98),
+        expectedCost,
+        actualCost,
+        status: randomFrom(['ACTIVE', 'COMPLETED', 'IN_PROGRESS'])
+    };
+
+    try {
+        const res = await fetch(`${API_BASE}/ingest/transaction`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(transaction)
+        });
+        if (!res.ok) {
+            throw new Error(`Transaction ingestion failed with status ${res.status}`);
+        }
+        await refreshDashboardData();
+    } catch (error) {
+        console.error('Live transaction stream failed:', error);
     } finally {
-        btn.classList.remove('loading');
-        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2l10 6-10 6V2z" fill="currentColor"/></svg> Run Analysis';
+        liveStreamInFlight = false;
     }
 }
 
 // ── Update Summary Cards ──
 function updateSummaryCards(impact) {
     if (!impact) return;
-    animateValue('totalCost', impact.totalCost);
-    animateValue('wasteDetected', impact.totalWaste);
-    animateValue('savingsGenerated', impact.totalSavings);
-    animateValue('yearlySavings', impact.yearlySavings);
-}
-
-function animateValue(elementId, target) {
-    const el = document.getElementById(elementId);
-    const duration = 1200;
-    const start = performance.now();
-    const startVal = 0;
-
-    function update(now) {
-        const elapsed = now - start;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const current = startVal + (target - startVal) * eased;
-        el.textContent = formatCurrency(Math.round(current));
-        if (progress < 1) requestAnimationFrame(update);
-    }
-    requestAnimationFrame(update);
+    animateValue(document.getElementById('totalCost'), 0, impact.totalCost, 2000);
+    animateValue(document.getElementById('wasteDetected'), 0, impact.totalWaste, 2000);
+    animateValue(document.getElementById('savingsGenerated'), 0, impact.totalSavings, 2000);
+    animateValue(document.getElementById('yearlySavings'), 0, impact.yearlySavings, 2000);
 }
 
 // ── Render ROI Metrics ──
@@ -200,25 +264,32 @@ function renderActions(actions) {
 
 // ── Render Playbooks ──
 function renderPlaybooks(playbooks) {
+    const toolbar = document.getElementById('playbooksToolbar');
     const container = document.getElementById('playbooksContainer');
+    toolbar.innerHTML = '';
+    container.innerHTML = '';
     document.getElementById('playbookBadge').textContent = playbooks.length;
+    allPlaybooksExpanded = false;
 
     if (!playbooks.length) {
         container.innerHTML = '<div class="empty-state">No playbooks generated yet</div>';
+        toolbar.innerHTML = '';
         return;
     }
 
-    container.innerHTML = `
+    toolbar.innerHTML = `
         <div class="playbooks-toolbar">
             <button class="btn-toggle-all" onclick="toggleAllPlaybooks()">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M2 4l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
-                <span id="toggleAllLabel">Collapse All</span>
+                <span id="toggleAllLabel">Expand All</span>
             </button>
             <span class="playbooks-summary">${playbooks.length} playbooks · ${formatCurrency(playbooks.reduce((s, p) => s + p.estimatedSavings, 0))} total potential savings</span>
         </div>
-    ` + playbooks.map((pb, i) => `
+    `;
+
+    container.innerHTML = playbooks.map((pb, i) => `
         <div class="playbook-card" style="animation: fadeInUp ${0.2 + i * 0.06}s ease both;">
             <div class="playbook-header" onclick="togglePlaybook('pb-${i}')">
                 <div class="playbook-meta">
@@ -231,11 +302,11 @@ function renderPlaybooks(playbooks) {
                     <span class="playbook-savings-value">${formatCurrency(pb.estimatedSavings)}</span>
                     <span class="playbook-savings-label">est. savings</span>
                 </div>
-                <svg class="playbook-chevron playbook-chevron-open" id="chevron-pb-${i}" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <svg class="playbook-chevron playbook-chevron-closed" id="chevron-pb-${i}" width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
             </div>
-            <div class="playbook-body playbook-body-open" id="pb-${i}">
+            <div class="playbook-body playbook-body-closed" id="pb-${i}">
                 <div class="playbook-steps">
                     ${pb.steps.map((step, si) => `
                         <div class="playbook-step">
@@ -245,7 +316,7 @@ function renderPlaybooks(playbooks) {
                     `).join('')}
                 </div>
                 <div class="cost-math-box">
-                    <div class="cost-math-label">📊 Cost Math Breakdown</div>
+                    <div class="cost-math-label"><i data-lucide="chart-column"></i> Cost Math Breakdown</div>
                     <div class="cost-math-content">${pb.costMath.replace(/\|/g, '<br>')}</div>
                 </div>
                 ${pb.triggerIssueId ? `<div class="playbook-trigger">Triggered by issue: <span class="trigger-id">${pb.triggerIssueId}</span></div>` : ''}
@@ -254,7 +325,7 @@ function renderPlaybooks(playbooks) {
     `).join('');
 }
 
-let allPlaybooksExpanded = true;
+let allPlaybooksExpanded = false;
 
 function togglePlaybook(id) {
     const body = document.getElementById(id);
@@ -329,8 +400,8 @@ function renderApprovals(approvals) {
                 <span class="approval-time">${a.createdAt}</span>
                 ${a.status === 'PENDING' ? `
                     <div class="approval-actions">
-                        <button class="btn-approve" onclick="handleApproval('${a.id}', 'approve')">✓ Approve</button>
-                        <button class="btn-reject" onclick="handleApproval('${a.id}', 'reject')">✕ Reject</button>
+                        <button class="btn-approve" onclick="handleApproval('${a.id}', 'approve')"><i data-lucide="check"></i> Approve</button>
+                        <button class="btn-reject" onclick="handleApproval('${a.id}', 'reject')"><i data-lucide="x"></i> Reject</button>
                     </div>
                 ` : `<span class="approval-resolved">Resolved: ${a.resolvedAt || '—'}</span>`}
             </div>
@@ -352,6 +423,7 @@ async function handleApproval(id, action) {
             const allRes = await fetch(`${API_BASE}/approvals`);
             const allApprovals = await allRes.json();
             renderApprovals(allApprovals);
+            refreshLucideIcons();
 
             // Flash feedback
             const card = document.getElementById(`approval-${id}`);
@@ -650,4 +722,6 @@ function renderAuditLog(auditLog) {
 // ── Initialize ──
 document.addEventListener('DOMContentLoaded', () => {
     console.log('AI Cost Intelligence Dashboard v2.0 initialized');
+    refreshLucideIcons();
+    liveStreamTimer = setInterval(sendFakeTransaction, 1000000000);
 });
