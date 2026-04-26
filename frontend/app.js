@@ -730,5 +730,5 @@ function renderAuditLog(auditLog) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('AI Cost Intelligence Dashboard v2.0 initialized');
     refreshLucideIcons();
-    liveStreamTimer = setInterval(sendFakeTransaction, 180000);
+    liveStreamTimer = setInterval(sendFakeTransaction, 1800000);
 });
