@@ -504,7 +504,7 @@ function renderBarChart(impact) {
                     ticks: {
                         color: '#64748b',
                         font: { size: 11, family: 'Inter' },
-                        callback: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1) + 'L' : v.toLocaleString('en-IN'))
+                        callback: (v) => '₹' + (v >= 100000 ? (v / 100000).toFixed(1) + 'L' : v.toLocaleString('en-IN'))
                     },
                     grid: { color: 'rgba(255,255,255,0.04)' },
                     border: { display: false }
@@ -730,5 +730,5 @@ function renderAuditLog(auditLog) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('AI Cost Intelligence Dashboard v2.0 initialized');
     refreshLucideIcons();
-    liveStreamTimer = setInterval(sendFakeTransaction, 50000000);
+    liveStreamTimer = setInterval(sendFakeTransaction, 180000);
 });

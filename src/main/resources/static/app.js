@@ -2,7 +2,7 @@
 // AI Cost Intelligence — Dashboard Application Logic v2.0
 // ═══════════════════════════════════════════════════════════════
 
-const API_BASE = 'http://localhost:8081/api';
+const API_BASE = 'http://localhost:8080/api';
 
 let barChart = null;
 let pieChart = null;
@@ -22,6 +22,22 @@ function formatCurrency(val) {
     if (val >= 100000) return '₹' + (val / 100000).toFixed(2) + 'L';
     if (val >= 1000) return '₹' + val.toLocaleString('en-IN');
     return '₹' + val.toFixed(0);
+}
+
+function animateValue(el, start, end, duration) {
+    if (!el) return;
+    let s = null;
+
+    function step(t) {
+        if (!s) s = t;
+        const p = t - s;
+        const v = Math.min(start + (end - start) * (p / duration), end);
+        el.textContent = '₹' + Math.floor(v).toLocaleString('en-IN');
+        if (p < duration) requestAnimationFrame(step);
+        else el.textContent = formatCurrency(end);
+    }
+
+    requestAnimationFrame(step);
 }
 
 // ── Run Analysis ──
@@ -62,7 +78,7 @@ async function refreshDashboardData({ showAlert = false } = {}) {
         refreshLucideIcons();
     } catch (error) {
         if (showAlert) {
-            alert('Failed to connect to backend. Make sure the Spring Boot server is running on port 8080.');
+            alert('Failed to connect to backend. Please try again (server may be waking up).');
         }
         throw error;
     }
@@ -121,27 +137,10 @@ async function sendFakeTransaction() {
 // ── Update Summary Cards ──
 function updateSummaryCards(impact) {
     if (!impact) return;
-    animateValue('totalCost', impact.totalCost);
-    animateValue('wasteDetected', impact.totalWaste);
-    animateValue('savingsGenerated', impact.totalSavings);
-    animateValue('yearlySavings', impact.yearlySavings);
-}
-
-function animateValue(elementId, target) {
-    const el = document.getElementById(elementId);
-    const duration = 1200;
-    const start = performance.now();
-    const startVal = 0;
-
-    function update(now) {
-        const elapsed = now - start;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const current = startVal + (target - startVal) * eased;
-        el.textContent = formatCurrency(Math.round(current));
-        if (progress < 1) requestAnimationFrame(update);
-    }
-    requestAnimationFrame(update);
+    animateValue(document.getElementById('totalCost'), 0, impact.totalCost, 2000);
+    animateValue(document.getElementById('wasteDetected'), 0, impact.totalWaste, 2000);
+    animateValue(document.getElementById('savingsGenerated'), 0, impact.totalSavings, 2000);
+    animateValue(document.getElementById('yearlySavings'), 0, impact.yearlySavings, 2000);
 }
 
 // ── Render ROI Metrics ──
@@ -265,16 +264,20 @@ function renderActions(actions) {
 
 // ── Render Playbooks ──
 function renderPlaybooks(playbooks) {
+    const toolbar = document.getElementById('playbooksToolbar');
     const container = document.getElementById('playbooksContainer');
+    toolbar.innerHTML = '';
+    container.innerHTML = '';
     document.getElementById('playbookBadge').textContent = playbooks.length;
     allPlaybooksExpanded = false;
 
     if (!playbooks.length) {
         container.innerHTML = '<div class="empty-state">No playbooks generated yet</div>';
+        toolbar.innerHTML = '';
         return;
     }
 
-    container.innerHTML = `
+    toolbar.innerHTML = `
         <div class="playbooks-toolbar">
             <button class="btn-toggle-all" onclick="toggleAllPlaybooks()">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -284,7 +287,9 @@ function renderPlaybooks(playbooks) {
             </button>
             <span class="playbooks-summary">${playbooks.length} playbooks · ${formatCurrency(playbooks.reduce((s, p) => s + p.estimatedSavings, 0))} total potential savings</span>
         </div>
-    ` + playbooks.map((pb, i) => `
+    `;
+
+    container.innerHTML = playbooks.map((pb, i) => `
         <div class="playbook-card" style="animation: fadeInUp ${0.2 + i * 0.06}s ease both;">
             <div class="playbook-header" onclick="togglePlaybook('pb-${i}')">
                 <div class="playbook-meta">
@@ -414,10 +419,17 @@ async function handleApproval(id, action) {
         const res = await fetch(`${API_BASE}/approvals/${id}/${action}`, { method: 'POST' });
         if (res.ok) {
             const updated = await res.json();
-            // Refresh approvals
-            const allRes = await fetch(`${API_BASE}/approvals`);
+
+            // Refresh approvals and audit log in parallel
+            const [allRes, auditRes] = await Promise.all([
+                fetch(`${API_BASE}/approvals`),
+                fetch(`${API_BASE}/audit`)
+            ]);
             const allApprovals = await allRes.json();
+            const auditLog = await auditRes.json();
+
             renderApprovals(allApprovals);
+            renderAuditLog(auditLog);
             refreshLucideIcons();
 
             // Flash feedback
@@ -718,5 +730,5 @@ function renderAuditLog(auditLog) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('AI Cost Intelligence Dashboard v2.0 initialized');
     refreshLucideIcons();
-    liveStreamTimer = setInterval(sendFakeTransaction, 120000);
+    liveStreamTimer = setInterval(sendFakeTransaction, 50000000);
 });
